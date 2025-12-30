@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Fisioterapia - Brasmetal</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-weight: bold;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        
+        .upload-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .upload-section h2 {
+            color: #1a73e8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .file-input {
+            padding: 12px 20px;
+            background-color: #f1f3f4;
+            border: 2px dashed #dadce0;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        
+        .url-input {
+            padding: 12px 20px;
+            background-color: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            flex-grow: 1;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #0d62d9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 98, 217, 0.3);
+        }
+        
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background-color: #5f6368;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4a4d52;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            margin-top: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tab {
+            padding: 18px 30px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 3px solid #1a73e8;
+            color: #1a73e8;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #e8f0fe;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+        }
+        
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .card-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .icon-blue {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        
+        .icon-green {
+            background-color: #e6f4ea;
+            color: #0d652d;
+        }
+        
+        .icon-red {
+            background-color: #fce8e6;
+            color: #c5221f;
+        }
+        
+        .icon-orange {
+            background-color: #fef7e0;
+            color: #ea8600;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 15px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th {
+            background-color: #f1f3f4;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background-color: #e6f4ea;
+            color: #0d652d;
+        }
+        
+        .status-inactive {
+            background-color: #fce8e6;
+            color: #c5221f;
+        }
+        
+        .status-pending {
+            background-color: #fef7e0;
+            color: #ea8600;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f1f3f4;
+            border-top: 5px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .option-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                text-align: center;
+                padding: 15px 10px;
+            }
+            
+            .option-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>Dashboard de Fisioterapia - Brasmetal</h1>
+                    <p class="subtitle">Análise de Atendimentos e Dados de Saúde Ocupacional</p>
+                </div>
+                <div class="logo">BRASMETAL</div>
+            </div>
+        </header>
+        
+        <section class="upload-section">
+            <h2>
+                <span>📊</span>
+                Carregar Dados
+            </h2>
+            <p>Escolha uma das opções abaixo para carregar os dados da planilha Excel.</p>
+            
+            <div class="option-buttons">
+                <button class="btn" id="githubBtn">Carregar do GitHub</button>
+                <button class="btn" id="localBtn">Carregar Arquivo Local</button>
+                <button class="btn btn-secondary" id="demoBtn">Usar Dados de Demonstração</button>
+            </div>
+            
+            <!-- Opção para arquivo local -->
+            <div id="localFileSection" style="display: none; margin-top: 20px;">
+                <div class="file-input-container">
+                    <div class="file-input" id="fileInput">
+                        <p id="fileName">Nenhum arquivo selecionado</p>
+                    </div>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;">
+                    <button class="btn" id="processBtn" disabled>Processar Arquivo</button>
+                </div>
+            </div>
+            
+            <!-- Opção para URL do GitHub -->
+            <div id="githubUrlSection" style="display: none; margin-top: 20px;">
+                <p>Informe a URL do arquivo Excel no GitHub:</p>
+                <input type="text" id="githubUrl" class="url-input" placeholder="https://raw.githubusercontent.com/usuario/repositorio/main/arquivo.xlsx">
+                <div style="margin-top: 15px;">
+                    <button class="btn" id="loadGithubBtn">Carregar do GitHub</button>
+                    <button class="btn btn-secondary" id="defaultGithubBtn">Usar URL Padrão</button>
+                </div>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <strong>Nota:</strong> A URL deve ser o link direto para o arquivo raw (bruto) do GitHub.
+                </p>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loadingText">Processando planilha e extraindo dados...</p>
+            </div>
+        </section>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard">Dashboard Geral</div>
+            <div class="tab" data-tab="atendimentos">Atendimentos</div>
+            <div class="tab" data-tab="pacientes">Pacientes</div>
+            <div class="tab" data-tab="setores">Setores</div>
+            <div class="tab" data-tab="queixas">Queixas e Riscos</div>
+            <div class="tab" data-tab="fisioterapeutas">Fisioterapeutas</div>
+        </div>
+        
+        <!-- Dashboard Geral -->
+        <div class="tab-content active" id="dashboard-tab">
+            <h2>Dashboard Geral - Resumo de Atendimentos 2025</h2>
+            <p>Visão geral dos dados de fisioterapia extraídos da planilha.</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Horários Totais Disponíveis</div>
+                        <div class="card-icon icon-blue">
+                            <span>📅</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="total-horarios">0</div>
+                    <div class="card-subtitle">Para o ano de 2025</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Horários Preenchidos</div>
+                        <div class="card-icon icon-green">
+                            <span>✅</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="horarios-preenchidos">0</div>
+                    <div class="card-subtitle">Média mensal: <span id="media-mensal">0</span></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Atendimentos Efetivos</div>
+                        <div class="card-icon icon-green">
+                            <span>👨‍⚕️</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="atendimentos-efetivos">0</div>
+                    <div class="card-subtitle">Sessões realizadas</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Atendimentos Emergenciais</div>
+                        <div class="card-icon icon-red">
+                            <span>🚨</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="atendimentos-emergenciais">0</div>
+                    <div class="card-subtitle">Urgências e emergências</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Encaixes</div>
+                        <div class="card-icon icon-orange">
+                            <span>➕</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="atendimentos-encaixes">0</div>
+                    <div class="card-subtitle">Atendimentos fora do horário regular</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Ausências (Faltas)</div>
+                        <div class="card-icon icon-red">
+                            <span>❌</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="total-ausencias">0</div>
+                    <div class="card-subtitle">Taxa de absenteísmo: <span id="taxa-absenteismo">0%</span></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Pacientes Atendidos</div>
+                        <div class="card-icon icon-blue">
+                            <span>👥</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="total-pacientes">0</div>
+                    <div class="card-subtitle">Funcionários em acompanhamento</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Altas Concedidas</div>
+                        <div class="card-icon icon-green">
+                            <span>🎯</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="total-altas">0</div>
+                    <div class="card-subtitle">Tratamentos concluídos com sucesso</div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Horários Preenchidos por Mês - 2025</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="horariosMensaisChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Atendimentos -->
+        <div class="tab-content" id="atendimentos-tab">
+            <h2>Detalhes de Atendimentos</h2>
+            <p>Análise detalhada dos atendimentos realizados.</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Distribuição por Tipo</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tipoAtendimentosChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Evolução Mensal</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="evolucaoAtendimentosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Registro de Atendimentos</div>
+                </div>
+                <div class="table-container">
+                    <table id="atendimentosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Paciente</th>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Setor</th>
+                                <th>Queixa Principal</th>
+                                <th>EVA</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pacientes -->
+        <div class="tab-content" id="pacientes-tab">
+            <h2>Pacientes em Acompanhamento</h2>
+            <p>Informações sobre os pacientes e quantidade de sessões realizadas.</p>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Distribuição de Sessões por Paciente</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sessoesPorPacienteChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Lista de Pacientes</div>
+                </div>
+                <div class="table-container">
+                    <table id="pacientesTable">
+                        <thead>
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Nome</th>
+                                <th>Setor</th>
+                                <th>Cargo</th>
+                                <th>Sessões Realizadas</th>
+                                <th>Data Início</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Setores -->
+        <div class="tab-content" id="setores-tab">
+            <h2>Setores Atendidos</h2>
+            <p>Análise de atendimentos por setor da empresa.</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Top 5 Setores com Mais Atendimentos</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="topSetoresChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Distribuição por Centro de Custo</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="centroCustoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Atendimentos por Setor</div>
+                </div>
+                <div class="table-container">
+                    <table id="setoresTable">
+                        <thead>
+                            <tr>
+                                <th>Setor</th>
+                                <th>Centro de Custo</th>
+                                <th>Pacientes</th>
+                                <th>Atendimentos</th>
+                                <th>Queixas Principais</th>
+                                <th>Taxa de Absenteísmo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Queixas e Riscos -->
+        <div class="tab-content" id="queixas-tab">
+            <h2>Análise de Queixas e Riscos Ocupacionais</h2>
+            <p>Distribuição de queixas por segmento corporal, risco do posto de trabalho e relação com atividades laborais.</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Queixas por Segmento Corporal</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="queixasSegmentoChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Risco do Posto de Trabalho</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="riscoPostoTrabalhoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid" style="margin-top: 25px;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Relação com Posto de Trabalho</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="relacaoPostoTrabalhoChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Distribuição de Índice EVA</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="evaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Queixas por Cargo/Atividade</div>
+                </div>
+                <div class="table-container">
+                    <table id="queixasTable">
+                        <thead>
+                            <tr>
+                                <th>Cargo/Atividade</th>
+                                <th>Queixa Principal</th>
+                                <th>Segmento Corporal</th>
+                                <th>Risco</th>
+                                <th>EVA Médio</th>
+                                <th>Pacientes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fisioterapeutas -->
+        <div class="tab-content" id="fisioterapeutas-tab">
+            <h2>Cadastro de Fisioterapeutas</h2>
+            <p>Informações sobre a equipe de fisioterapia.</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Fisioterapeutas Ativos</div>
+                        <div class="card-icon icon-green">
+                            <span>👨‍⚕️</span>
+                        </div>
+                    </div>
+                    <div class="card-value" id="total-fisioterapeutas">0</div>
+                    <div class="card-subtitle">Equipe de fisioterapia</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Atendimentos por Profissional</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="atendimentosPorFisioChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <div class="card-title">Cadastro da Equipe de Fisioterapia</div>
+                </div>
+                <div class="table-container">
+                    <table id="fisioterapeutasTable">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Registro</th>
+                                <th>Especialidade</th>
+                                <th>Atendimentos</th>
+                                <th>Pacientes</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Dashboard de Fisioterapia - Brasmetal | Desenvolvido para análise de dados de saúde ocupacional</p>
+            <p>© 2025 - Para carregar arquivos do GitHub, use a URL raw do arquivo</p>
+        </div>
+    </div>
+
+    <script>
+        // Elementos do DOM
+        const excelFileInput = document.getElementById('excelFile');
+        const fileInputDisplay = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const processBtn = document.getElementById('processBtn');
+        const githubBtn = document.getElementById('githubBtn');
+        const localBtn = document.getElementById('localBtn');
+        const demoBtn = document.getElementById('demoBtn');
+        const loadGithubBtn = document.getElementById('loadGithubBtn');
+        const defaultGithubBtn = document.getElementById('defaultGithubBtn');
+        const githubUrlInput = document.getElementById('githubUrl');
+        const localFileSection = document.getElementById('localFileSection');
+        const githubUrlSection = document.getElementById('githubUrlSection');
+        const loadingElement = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Variáveis para armazenar dados
+        let dadosExtraidos = {};
+        let dadosPlanilha = [];
+        let dadosAtendimentos = [];
+        let dadosPacientes = [];
+        let dadosSetores = [];
+        let dadosQueixas = [];
+        let dadosFisioterapeutas = [];
+        
+        // URLs de exemplo para GitHub
+        const DEFAULT_GITHUB_URL = 'https://raw.githubusercontent.com/example/repo/main/dados_fisioterapia.xlsx';
+        
+        // Configurar eventos
+        githubBtn.addEventListener('click', () => {
+            localFileSection.style.display = 'none';
+            githubUrlSection.style.display = 'block';
+            githubUrlInput.value = '';
+        });
+        
+        localBtn.addEventListener('click', () => {
+            githubUrlSection.style.display = 'none';
+            localFileSection.style.display = 'block';
+        });
+        
+        defaultGithubBtn.addEventListener('click', () => {
+            githubUrlInput.value = DEFAULT_GITHUB_URL;
+        });
+        
+        fileInputDisplay.addEventListener('click', () => {
+            excelFileInput.click();
+        });
+        
+        excelFileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                fileNameDisplay.textContent = fileName;
+                processBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'Nenhum arquivo selecionado';
+                processBtn.disabled = true;
+            }
+        });
+        
+        processBtn.addEventListener('click', processarArquivoLocal);
+        loadGithubBtn.addEventListener('click', carregarDoGitHub);
+        demoBtn.addEventListener('click', carregarDadosDemonstracao);
+        
+        // Configurar tabs
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Remover classe active de todas as tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                // Adicionar classe active na tab clicada
+                tab.classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Função para processar arquivo local
+        async function processarArquivoLocal() {
+            const file = excelFileInput.files[0];
+            if (!file) {
+                alert('Por favor, selecione um arquivo Excel.');
+                return;
+            }
+            
+            loadingText.textContent = 'Processando arquivo local...';
+            loadingElement.style.display = 'flex';
+            
+            try {
+                const data = await readFileAsArrayBuffer(file);
+                processarDadosExcel(data);
+            } catch (error) {
+                console.error('Erro ao processar arquivo:', error);
+                loadingElement.style.display = 'none';
+                alert('Erro ao processar o arquivo. Verifique se é um arquivo Excel válido.');
+            }
+        }
+        
+        // Função para ler arquivo como ArrayBuffer
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.onerror = function() {
+                    reject(new Error('Erro ao ler o arquivo'));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // Função para carregar arquivo do GitHub
+        async function carregarDoGitHub() {
+            const url = githubUrlInput.value.trim();
+            
+            if (!url) {
+                alert('Por favor, informe a URL do arquivo no GitHub.');
+                return;
+            }
+            
+            if (!url.toLowerCase().endsWith('.xlsx') && !url.toLowerCase().endsWith('.xls')) {
+                if (!confirm('A URL não parece ser de um arquivo Excel (.xlsx ou .xls). Deseja continuar?')) {
+                    return;
+                }
+            }
+            
+            loadingText.textContent = 'Carregando arquivo do GitHub...';
+            loadingElement.style.display = 'flex';
+            
+            try {
+                // Usar fetch para baixar o arquivo do GitHub
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ao baixar arquivo: ${response.status} ${response.statusText}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                processarDadosExcel(arrayBuffer);
+                
+            } catch (error) {
+                console.error('Erro ao carregar do GitHub:', error);
+                loadingElement.style.display = 'none';
+                alert(`Erro ao carregar arquivo do GitHub: ${error.message}. Verifique se a URL está correta e se o arquivo é acessível.`);
+            }
+        }
+        
+        // Função para processar dados Excel (comum para ambas as fontes)
+        function processarDadosExcel(arrayBuffer) {
+            try {
+                // Ler o workbook do Excel
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                // Obter a primeira planilha
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Converter para JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                // Processar os dados
+                processarDadosPlanilha(jsonData);
+                
+                // Extrair informações para o dashboard
+                extrairDadosDashboard();
+                
+                // Gerar visualizações
+                gerarVisualizacoes();
+                
+                loadingElement.style.display = 'none';
+                alert('Arquivo processado com sucesso!');
+                
+            } catch (error) {
+                console.error('Erro ao processar dados Excel:', error);
+                loadingElement.style.display = 'none';
+                alert('Erro ao processar o arquivo. Verifique se é um arquivo Excel válido.');
+            }
+        }
+        
+        // Função para processar os dados da planilha
+        function processarDadosPlanilha(jsonData) {
+            dadosPlanilha = [];
+            
+            if (!jsonData || jsonData.length === 0) {
+                console.warn('Planilha vazia ou sem dados');
+                return;
+            }
+            
+            // Encontrar o índice do cabeçalho
+            let headerRowIndex = 0;
+            for (let i = 0; i < Math.min(5, jsonData.length); i++) {
+                if (jsonData[i] && jsonData[i].length > 5) {
+                    // Verificar se esta linha tem campos que parecem cabeçalho
+                    const firstCell = String(jsonData[i][0] || '').toLowerCase();
+                    if (firstCell.includes('matrícula') || firstCell.includes('matricula') || firstCell === 'id') {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            console.log('Cabeçalho encontrado na linha:', headerRowIndex);
+            
+            // Processar linhas a partir do cabeçalho
+            for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                const linha = jsonData[i];
+                if (!linha || linha.length === 0) continue;
+                
+                // Criar objeto com os dados
+                const registro = {
+                    matricula: linha[0] !== undefined ? String(linha[0]) : '',
+                    nome: linha[1] !== undefined ? String(linha[1]) : '',
+                    dataNascimento: linha[2] ? parseDate(linha[2]) : null,
+                    dataAdmissao: linha[3] ? parseDate(linha[3]) : null,
+                    categoriaSalarial: linha[4] !== undefined ? String(linha[4]) : '',
+                    cargo: linha[5] !== undefined ? String(linha[5]) : '',
+                    classificacaoOcupacao: linha[6] !== undefined ? String(linha[6]) : '',
+                    centroCusto: linha[7] !== undefined ? String(linha[7]) : '',
+                    descricaoCentroCusto: linha[8] !== undefined ? String(linha[8]) : '',
+                    carteiraIdentidade: linha[9] !== undefined ? String(linha[9]) : '',
+                    emissaoIdentidade: linha[10] ? parseDate(linha[10]) : null,
+                    idFederal: linha[11] !== undefined ? String(linha[11]) : '',
+                    pis: linha[12] !== undefined ? String(linha[12]) : '',
+                    ctpsNumero: linha[13] !== undefined ? String(linha[13]) : '',
+                    ctpsSerie: linha[14] !== undefined ? String(linha[14]) : '',
+                    dataCtps: linha[15] ? parseDate(linha[15]) : null,
+                    estadoCivil: linha[16] !== undefined ? String(linha[16]) : '',
+                    nomeMae: linha[17] !== undefined ? String(linha[17]) : '',
+                    nomePai: linha[18] !== undefined ? String(linha[18]) : '',
+                    endereco: linha[19] !== undefined ? String(linha[19]) : '',
+                    numeroEndereco: linha[20] !== undefined ? String(linha[20]) : '',
+                    bairro: linha[21] !== undefined ? String(linha[21]) : '',
+                    cidade: linha[22] !== undefined ? String(linha[22]) : '',
+                    cep: linha[23] !== undefined ? String(linha[23]) : '',
+                    telefone: linha[24] !== undefined ? String(linha[24]) : '',
+                    telefoneContato: linha[25] !== undefined ? String(linha[25]) : ''
+                };
+                
+                // Adicionar apenas registros com matrícula
+                if (registro.matricula && registro.matricula.trim() !== '') {
+                    dadosPlanilha.push(registro);
+                }
+            }
+            
+            console.log('Dados da planilha processados:', dadosPlanilha.length, 'registros');
+            
+            // Se não encontrou dados, tentar método alternativo
+            if (dadosPlanilha.length === 0 && jsonData.length > 0) {
+                console.log('Tentando método alternativo de leitura...');
+                processarDadosPlanilhaAlternativo(jsonData);
+            }
+        }
+        
+        // Método alternativo para processar dados da planilha
+        function processarDadosPlanilhaAlternativo(jsonData) {
+            dadosPlanilha = [];
+            
+            // Tentar encontrar dados começando da primeira linha
+            for (let i = 0; i < jsonData.length; i++) {
+                const linha = jsonData[i];
+                if (!linha || linha.length < 5) continue;
+                
+                // Verificar se esta linha parece conter dados (tem matrícula numérica)
+                const possivelMatricula = linha[0];
+                if (possivelMatricula && !isNaN(possivelMatricula) && possivelMatricula > 0) {
+                    const registro = {
+                        matricula: String(possivelMatricula),
+                        nome: linha[1] !== undefined ? String(linha[1]) : '',
+                        dataNascimento: linha[2] ? parseDate(linha[2]) : null,
+                        dataAdmissao: linha[3] ? parseDate(linha[3]) : null,
+                        categoriaSalarial: linha[4] !== undefined ? String(linha[4]) : '',
+                        cargo: linha[5] !== undefined ? String(linha[5]) : '',
+                        classificacaoOcupacao: linha[6] !== undefined ? String(linha[6]) : '',
+                        centroCusto: linha[7] !== undefined ? String(linha[7]) : '',
+                        descricaoCentroCusto: linha[8] !== undefined ? String(linha[8]) : '',
+                        carteiraIdentidade: linha[9] !== undefined ? String(linha[9]) : '',
+                        emissaoIdentidade: linha[10] ? parseDate(linha[10]) : null,
+                        idFederal: linha[11] !== undefined ? String(linha[11]) : '',
+                        pis: linha[12] !== undefined ? String(linha[12]) : '',
+                        ctpsNumero: linha[13] !== undefined ? String(linha[13]) : '',
+                        ctpsSerie: linha[14] !== undefined ? String(linha[14]) : '',
+                        dataCtps: linha[15] ? parseDate(linha[15]) : null,
+                        estadoCivil: linha[16] !== undefined ? String(linha[16]) : '',
+                        nomeMae: linha[17] !== undefined ? String(linha[17]) : '',
+                        nomePai: linha[18] !== undefined ? String(linha[18]) : '',
+                        endereco: linha[19] !== undefined ? String(linha[19]) : '',
+                        numeroEndereco: linha[20] !== undefined ? String(linha[20]) : '',
+                        bairro: linha[21] !== undefined ? String(linha[21]) : '',
+                        cidade: linha[22] !== undefined ? String(linha[22]) : '',
+                        cep: linha[23] !== undefined ? String(linha[23]) : '',
+                        telefone: linha[24] !== undefined ? String(linha[24]) : '',
+                        telefoneContato: linha[25] !== undefined ? String(linha[25]) : ''
+                    };
+                    
+                    dadosPlanilha.push(registro);
+                }
+            }
+            
+            console.log('Dados processados (método alternativo):', dadosPlanilha.length, 'registros');
+        }
+        
+        // Função para analisar datas
+        function parseDate(dateValue) {
+            if (!dateValue) return null;
+            
+            // Se já for um objeto Date
+            if (dateValue instanceof Date) {
+                return dateValue;
+            }
+            
+            // Se for um número (serial do Excel)
+            if (typeof dateValue === 'number') {
+                // Converter serial do Excel para JavaScript Date
+                const excelEpoch = new Date(1899, 11, 30);
+                const jsDate = new Date(excelEpoch.getTime() + dateValue * 24 * 60 * 60 * 1000);
+                return jsDate;
+            }
+            
+            // Se for string, tentar analisar
+            if (typeof dateValue === 'string') {
+                // Remover "00:00:00" se presente
+                const cleanDateStr = dateValue.replace(' 00:00:00', '');
+                
+                // Tentar diferentes formatos de data
+                const dateFormats = [
+                    'YYYY-MM-DD',
+                    'DD/MM/YYYY',
+                    'MM/DD/YYYY',
+                    'YYYY/MM/DD'
+                ];
+                
+                for (const format of dateFormats) {
+                    const parts = cleanDateStr.split(/[-/]/);
+                    if (parts.length === 3) {
+                        let year, month, day;
+                        
+                        if (format === 'YYYY-MM-DD') {
+                            year = parseInt(parts[0]);
+                            month = parseInt(parts[1]) - 1;
+                            day = parseInt(parts[2]);
+                        } else if (format === 'DD/MM/YYYY') {
+                            day = parseInt(parts[0]);
+                            month = parseInt(parts[1]) - 1;
+                            year = parseInt(parts[2]);
+                        } else if (format === 'MM/DD/YYYY') {
+                            month = parseInt(parts[0]) - 1;
+                            day = parseInt(parts[1]);
+                            year = parseInt(parts[2]);
+                        } else if (format === 'YYYY/MM/DD') {
+                            year = parseInt(parts[0]);
+                            month = parseInt(parts[1]) - 1;
+                            day = parseInt(parts[2]);
+                        }
+                        
+                        // Verificar se os valores são válidos
+                        if (year > 1900 && year < 2100 && month >= 0 && month < 12 && day > 0 && day < 32) {
+                            return new Date(year, month, day);
+                        }
+                    }
+                }
+            }
+            
+            // Se nada funcionar, retornar null
+            console.warn('Não foi possível analisar a data:', dateValue);
+            return null;
+        }
+        
+        // Função para extrair dados para o dashboard
+        function extrairDadosDashboard() {
+            // Verificar se temos dados da planilha
+            if (dadosPlanilha.length === 0) {
+                console.warn('Nenhum dado da planilha disponível. Gerando dados simulados.');
+                // Gerar dados simulados para demonstração
+                gerarDadosSimuladosPlanilha();
+            }
+            
+            // Gerar dados simulados para o dashboard baseados na planilha de funcionários
+            const totalFuncionarios = dadosPlanilha.length;
+            
+            // Dados simulados para atendimentos (em um cenário real, viriam de outra planilha)
+            dadosAtendimentos = gerarDadosAtendimentosSimulados(totalFuncionarios);
+            dadosPacientes = gerarDadosPacientesSimulados();
+            dadosSetores = gerarDadosSetoresSimulados();
+            dadosQueixas = gerarDadosQueixasSimulados();
+            dadosFisioterapeutas = gerarDadosFisioterapeutasSimulados();
+            
+            // Calcular totais para o dashboard
+            const totalHorarios = 250 * 12; // 250 horários por mês * 12 meses
+            const horariosPreenchidos = dadosAtendimentos.length;
+            const atendimentosEfetivos = dadosAtendimentos.filter(a => a.tipo === 'Efetivo').length;
+            const atendimentosEmergenciais = dadosAtendimentos.filter(a => a.tipo === 'Emergencial').length;
+            const atendimentosEncaixes = dadosAtendimentos.filter(a => a.tipo === 'Encaixe').length;
+            const totalAusencias = dadosAtendimentos.filter(a => a.status === 'Falta').length;
+            const totalPacientes = new Set(dadosAtendimentos.map(a => a.pacienteId)).size;
+            const totalAltas = dadosPacientes.filter(p => p.status === 'Alta').length;
+            const taxaAbsenteismo = totalAusencias > 0 ? ((totalAusencias / horariosPreenchidos) * 100).toFixed(1) : 0;
+            const mediaMensal = Math.round(horariosPreenchidos / 12);
+            
+            // Armazenar dados extraídos
+            dadosExtraidos = {
+                totalHorarios,
+                horariosPreenchidos,
+                mediaMensal,
+                atendimentosEfetivos,
+                atendimentosEmergenciais,
+                atendimentosEncaixes,
+                totalAusencias,
+                taxaAbsenteismo,
+                totalPacientes,
+                totalAltas,
+                totalFisioterapeutas: dadosFisioterapeutas.length
+            };
+            
+            // Atualizar elementos do dashboard
+            atualizarDashboard();
+        }
+        
+        // Função para gerar dados simulados da planilha quando não há dados reais
+        function gerarDadosSimuladosPlanilha() {
+            dadosPlanilha = [];
+            const cargos = [
+                'OPERADOR DE DECAPAGEM II', 'TECNICO QUIMICO', 'OPERADOR PONTE ROLANTE CABINE',
+                'OP CALDEIRA ETE DECAP MULTIFUN', 'OPERADOR DE TESOURA II', 'COORDENADOR DE DECAPAGEM',
+                'SUPERVISOR DE LOGISTICA', 'GER EXECUTIVO DE MANUTENCAO', 'SUPERVISOR MANUTENCAO MECANICA',
+                'OPERADOR DE PONTE ROLANTE', 'SUPERVISOR DE MARKETING', 'GER EXECUTIVO DE VENDAS'
+            ];
+            
+            const setores = [
+                'Decapagem', 'Tesoura Fagor de Materia Prima', 'Ponte Rolante 25 tons. (Villares)',
+                'Chefia de Producao', 'Logistica', 'Gerencia de Manutencao',
+                'Manutencao Mecanica', 'Marketing', 'Vendas Mercado Interno'
+            ];
+            
+            for (let i = 1; i <= 50; i++) {
+                const nome = `Funcionário ${i} Silva`;
+                const cargo = cargos[Math.floor(Math.random() * cargos.length)];
+                const setor = setores[Math.floor(Math.random() * setores.length)];
+                
+                dadosPlanilha.push({
+                    matricula: String(1000 + i),
+                    nome: nome,
+                    dataNascimento: new Date(1970 + Math.floor(Math.random() * 30), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+                    dataAdmissao: new Date(2000 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+                    categoriaSalarial: Math.random() > 0.5 ? 'Mensal' : 'Horista',
+                    cargo: cargo,
+                    classificacaoOcupacao: 'XXXXXX',
+                    centroCusto: String(60000 + Math.floor(Math.random() * 1000)),
+                    descricaoCentroCusto: setor,
+                    carteiraIdentidade: `${Math.floor(Math.random() * 90000000) + 10000000}`,
+                    emissaoIdentidade: new Date(2010 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+                    idFederal: `${Math.floor(Math.random() * 90000000000) + 10000000000}`,
+                    pis: `${Math.floor(Math.random() * 90000000000) + 10000000000}`,
+                    ctpsNumero: String(Math.floor(Math.random() * 10000000)).padStart(7, '0'),
+                    ctpsSerie: String(Math.floor(Math.random() * 1000)).padStart(3, '0'),
+                    dataCtps: new Date(2000 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+                    estadoCivil: Math.random() > 0.5 ? 'Casado' : 'Solteiro',
+                    nomeMae: `Mãe do Funcionário ${i}`,
+                    nomePai: `Pai do Funcionário ${i}`,
+                    endereco: 'Rua Exemplo',
+                    numeroEndereco: String(Math.floor(Math.random() * 1000) + 1),
+                    bairro: 'Bairro Exemplo',
+                    cidade: Math.random() > 0.5 ? 'São Paulo' : 'Santo André',
+                    cep: '00000000',
+                    telefone: '(11) 90000-0000',
+                    telefoneContato: '(11) 90000-0001'
+                });
+            }
+        }
+        
+        // Atualizar elementos do dashboard
+        function atualizarDashboard() {
+            document.getElementById('total-horarios').textContent = dadosExtraidos.totalHorarios.toLocaleString();
+            document.getElementById('horarios-preenchidos').textContent = dadosExtraidos.horariosPreenchidos.toLocaleString();
+            document.getElementById('media-mensal').textContent = dadosExtraidos.mediaMensal.toLocaleString();
+            document.getElementById('atendimentos-efetivos').textContent = dadosExtraidos.atendimentosEfetivos.toLocaleString();
+            document.getElementById('atendimentos-emergenciais').textContent = dadosExtraidos.atendimentosEmergenciais.toLocaleString();
+            document.getElementById('atendimentos-encaixes').textContent = dadosExtraidos.atendimentosEncaixes.toLocaleString();
+            document.getElementById('total-ausencias').textContent = dadosExtraidos.totalAusencias.toLocaleString();
+            document.getElementById('taxa-absenteismo').textContent = dadosExtraidos.taxaAbsenteismo + '%';
+            document.getElementById('total-pacientes').textContent = dadosExtraidos.totalPacientes.toLocaleString();
+            document.getElementById('total-altas').textContent = dadosExtraidos.totalAltas.toLocaleString();
+            document.getElementById('total-fisioterapeutas').textContent = dadosExtraidos.totalFisioterapeutas.toLocaleString();
+        }
+        
+        // Função para gerar dados de atendimentos simulados
+        function gerarDadosAtendimentosSimulados(totalFuncionarios) {
+            const atendimentos = [];
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const tiposAtendimento = ['Efetivo', 'Emergencial', 'Encaixe'];
+            const statusAtendimento = ['Realizado', 'Falta', 'Cancelado'];
+            const queixas = [
+                'Lombalgia', 'Dor cervical', 'Tendinite punho', 'Bursite ombro', 
+                'Epicondilite', 'Síndrome do túnel do carpo', 'Dor joelho', 
+                'Dor ombro', 'Distensão muscular', 'Artrose'
+            ];
+            const segmentosCorporais = ['Coluna Lombar', 'Coluna Cervical', 'Membro Superior', 'Membro Inferior', 'Ombro', 'Joelho'];
+            
+            // Selecionar um subconjunto de funcionários como pacientes
+            const pacientesIds = [];
+            const numPacientes = Math.min(120, totalFuncionarios); // Máximo 120 pacientes
+            for (let i = 0; i < numPacientes; i++) {
+                const randomIndex = Math.floor(Math.random() * totalFuncionarios);
+                if (dadosPlanilha[randomIndex]) {
+                    pacientesIds.push({
+                        id: dadosPlanilha[randomIndex].matricula,
+                        nome: dadosPlanilha[randomIndex].nome,
+                        setor: dadosPlanilha[randomIndex].descricaoCentroCusto,
+                        cargo: dadosPlanilha[randomIndex].cargo
+                    });
+                }
+            }
+            
+            // Gerar atendimentos para o ano de 2025
+            let id = 1;
+            for (let mes = 0; mes < 12; mes++) {
+                // Número de atendimentos no mês (varia de 180 a 220)
+                const atendimentosNoMes = 180 + Math.floor(Math.random() * 40);
+                
+                for (let i = 0; i < atendimentosNoMes; i++) {
+                    const paciente = pacientesIds[Math.floor(Math.random() * pacientesIds.length)];
+                    const tipo = tiposAtendimento[Math.floor(Math.random() * tiposAtendimento.length)];
+                    const status = statusAtendimento[Math.floor(Math.random() * statusAtendimento.length)];
+                    const queixa = queixas[Math.floor(Math.random() * queixas.length)];
+                    const segmento = segmentosCorporais[Math.floor(Math.random() * segmentosCorporais.length)];
+                    const eva = Math.floor(Math.random() * 10) + 1; // EVA de 1 a 10
+                    
+                    // Data aleatória no mês
+                    const dia = Math.floor(Math.random() * 28) + 1;
+                    const data = new Date(2025, mes, dia);
+                    
+                    atendimentos.push({
+                        id: id++,
+                        pacienteId: paciente.id,
+                        pacienteNome: paciente.nome,
+                        data: data,
+                        mes: meses[mes],
+                        tipo: tipo,
+                        setor: paciente.setor,
+                        queixa: queixa,
+                        segmentoCorporal: segmento,
+                        eva: eva,
+                        status: status
+                    });
+                }
+            }
+            
+            return atendimentos;
+        }
+        
+        // Função para gerar dados de pacientes simulados
+        function gerarDadosPacientesSimulados() {
+            const pacientes = [];
+            const statusOptions = ['Em tratamento', 'Alta', 'Aguardando retorno', 'Encaminhado'];
+            
+            // Usar dados dos funcionários que têm atendimentos
+            const pacientesIds = [...new Set(dadosAtendimentos.map(a => a.pacienteId))];
+            
+            pacientesIds.forEach(id => {
+                const atendimentosPaciente = dadosAtendimentos.filter(a => a.pacienteId === id);
+                const primeiroAtendimento = atendimentosPaciente.reduce((min, a) => a.data < min.data ? a : min, atendimentosPaciente[0]);
+                
+                // Encontrar dados do funcionário na planilha
+                const funcionario = dadosPlanilha.find(f => f.matricula == id);
+                
+                if (funcionario) {
+                    const sessoesRealizadas = atendimentosPaciente.filter(a => a.status === 'Realizado').length;
+                    const status = sessoesRealizadas > 8 ? 'Alta' : 
+                                  sessoesRealizadas > 4 ? 'Em tratamento' : 
+                                  sessoesRealizadas > 1 ? 'Aguardando retorno' : 'Encaminhado';
+                    
+                    pacientes.push({
+                        matricula: funcionario.matricula,
+                        nome: funcionario.nome,
+                        setor: funcionario.descricaoCentroCusto,
+                        cargo: funcionario.cargo,
+                        dataAdmissao: funcionario.dataAdmissao,
+                        sessoesRealizadas: sessoesRealizadas,
+                        dataInicioTratamento: primeiroAtendimento.data,
+                        ultimaSessao: atendimentosPaciente[atendimentosPaciente.length - 1].data,
+                        status: status
+                    });
+                }
+            });
+            
+            return pacientes;
+        }
+        
+        // Função para gerar dados de setores simulados
+        function gerarDadosSetoresSimulados() {
+            const setoresMap = new Map();
+            
+            // Agrupar atendimentos por setor
+            dadosAtendimentos.forEach(atendimento => {
+                if (!setoresMap.has(atendimento.setor)) {
+                    setoresMap.set(atendimento.setor, {
+                        setor: atendimento.setor,
+                        pacientes: new Set(),
+                        atendimentos: 0,
+                        atendimentosEfetivos: 0,
+                        faltas: 0,
+                        queixas: new Map()
+                    });
+                }
+                
+                const setorData = setoresMap.get(atendimento.setor);
+                setorData.pacientes.add(atendimento.pacienteId);
+                setorData.atendimentos++;
+                
+                if (atendimento.status === 'Realizado') {
+                    setorData.atendimentosEfetivos++;
+                } else if (atendimento.status === 'Falta') {
+                    setorData.faltas++;
+                }
+                
+                // Contar queixas
+                if (!setorData.queixas.has(atendimento.queixa)) {
+                    setorData.queixas.set(atendimento.queixa, 0);
+                }
+                setorData.queixas.set(atendimento.queixa, setorData.queixas.get(atendimento.queixa) + 1);
+            });
+            
+            // Converter map para array
+            const setores = Array.from(setoresMap.values()).map(setorData => {
+                // Encontrar as 3 queixas mais comuns
+                const queixasArray = Array.from(setorData.queixas.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(q => q[0])
+                    .join(', ');
+                
+                const taxaAbsenteismo = setorData.faltas > 0 ? 
+                    ((setorData.faltas / setorData.atendimentos) * 100).toFixed(1) + '%' : '0%';
+                
+                return {
+                    setor: setorData.setor,
+                    centroCusto: setorData.setor,
+                    pacientes: setorData.pacientes.size,
+                    atendimentos: setorData.atendimentos,
+                    atendimentosEfetivos: setorData.atendimentosEfetivos,
+                    queixasPrincipais: queixasArray || 'N/A',
+                    taxaAbsenteismo: taxaAbsenteismo
+                };
+            });
+            
+            return setores;
+        }
+        
+        // Função para gerar dados de queixas simuladas
+        function gerarDadosQueixasSimulados() {
+            const queixas = [];
+            const cargos = [...new Set(dadosPlanilha.map(f => f.cargo))].slice(0, 15); // Pegar 15 cargos diferentes
+            
+            cargos.forEach(cargo => {
+                const funcionariosComCargo = dadosPlanilha.filter(f => f.cargo === cargo);
+                if (funcionariosComCargo.length === 0) return;
+                
+                // Queixas comuns para este cargo
+                const queixasComuns = [
+                    'Lombalgia', 'Dor cervical', 'Tendinite punho', 'Dor ombro', 'Dor joelho'
+                ];
+                
+                const queixaPrincipal = queixasComuns[Math.floor(Math.random() * queixasComuns.length)];
+                const segmentos = ['Coluna Lombar', 'Coluna Cervical', 'Membro Superior', 'Membro Inferior'];
+                const segmento = segmentos[Math.floor(Math.random() * segmentos.length)];
+                
+                // Determinar risco baseado no cargo
+                let risco = 'Baixo';
+                if (cargo.includes('OPERADOR') || cargo.includes('MECANICO')) {
+                    risco = 'Alto';
+                } else if (cargo.includes('TECNICO') || cargo.includes('AUXILIAR')) {
+                    risco = 'Médio';
+                }
+                
+                const evaMedio = (5 + Math.random() * 4).toFixed(1); // EVA entre 5 e 9
+                const numPacientes = Math.max(1, Math.floor(funcionariosComCargo.length * 0.3)); // 30% dos funcionários com esse cargo
+                
+                queixas.push({
+                    cargo: cargo,
+                    queixaPrincipal: queixaPrincipal,
+                    segmentoCorporal: segmento,
+                    risco: risco,
+                    evaMedio: evaMedio,
+                    pacientes: numPacientes
+                });
+            });
+            
+            return queixas;
+        }
+        
+        // Função para gerar dados de fisioterapeutas simulados
+        function gerarDadosFisioterapeutasSimulados() {
+            return [
+                {
+                    nome: 'Dra. Maria Silva Costa',
+                    registro: 'CREFITO-1/123456',
+                    especialidade: 'Fisioterapia Traumato-Ortopédica',
+                    atendimentos: 450,
+                    pacientes: 65,
+                    status: 'Ativo'
+                },
+                {
+                    nome: 'Dr. João Pereira Santos',
+                    registro: 'CREFITO-2/234567',
+                    especialidade: 'Fisioterapia do Trabalho',
+                    atendimentos: 520,
+                    pacientes: 72,
+                    status: 'Ativo'
+                },
+                {
+                    nome: 'Dra. Ana Oliveira Lima',
+                    registro: 'CREFITO-3/345678',
+                    especialidade: 'Fisioterapia Dermatofuncional',
+                    atendimentos: 380,
+                    pacientes: 58,
+                    status: 'Ativo'
+                },
+                {
+                    nome: 'Dr. Pedro Almeida Souza',
+                    registro: 'CREFITO-4/456789',
+                    especialidade: 'Fisioterapia Neurológica',
+                    atendimentos: 410,
+                    pacientes: 62,
+                    status: 'Ativo'
+                }
+            ];
+        }
+        
+        // Função para gerar visualizações e tabelas
+        function gerarVisualizacoes() {
+            // 1. Gráfico de horários mensais
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const horariosPorMes = new Array(12).fill(0);
+            
+            dadosAtendimentos.forEach(atendimento => {
+                const mesIndex = meses.indexOf(atendimento.mes);
+                if (mesIndex >= 0) {
+                    horariosPorMes[mesIndex]++;
+                }
+            });
+            
+            const horariosMensaisCtx = document.getElementById('horariosMensaisChart').getContext('2d');
+            new Chart(horariosMensaisCtx, {
+                type: 'bar',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Horários Preenchidos',
+                        data: horariosPorMes,
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade de Atendimentos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+            
+            // 2. Gráfico de distribuição por tipo de atendimento
+            const tipoAtendimentosCtx = document.getElementById('tipoAtendimentosChart').getContext('2d');
+            const tipos = ['Efetivo', 'Emergencial', 'Encaixe'];
+            const contagemTipos = tipos.map(tipo => 
+                dadosAtendimentos.filter(a => a.tipo === tipo).length
+            );
+            
+            new Chart(tipoAtendimentosCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: tipos,
+                    datasets: [{
+                        data: contagemTipos,
+                        backgroundColor: [
+                            'rgba(13, 101, 45, 0.7)',
+                            'rgba(197, 34, 31, 0.7)',
+                            'rgba(234, 134, 0, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(13, 101, 45, 1)',
+                            'rgba(197, 34, 31, 1)',
+                            'rgba(234, 134, 0, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 3. Gráfico de evolução mensal de atendimentos
+            const evolucaoAtendimentosCtx = document.getElementById('evolucaoAtendimentosChart').getContext('2d');
+            const atendimentosPorMesEfetivo = new Array(12).fill(0);
+            const atendimentosPorMesEmergencial = new Array(12).fill(0);
+            const atendimentosPorMesEncaixe = new Array(12).fill(0);
+            
+            dadosAtendimentos.forEach(atendimento => {
+                const mesIndex = meses.indexOf(atendimento.mes);
+                if (mesIndex >= 0) {
+                    if (atendimento.tipo === 'Efetivo') atendimentosPorMesEfetivo[mesIndex]++;
+                    else if (atendimento.tipo === 'Emergencial') atendimentosPorMesEmergencial[mesIndex]++;
+                    else if (atendimento.tipo === 'Encaixe') atendimentosPorMesEncaixe[mesIndex]++;
+                }
+            });
+            
+            new Chart(evolucaoAtendimentosCtx, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [
+                        {
+                            label: 'Efetivo',
+                            data: atendimentosPorMesEfetivo,
+                            borderColor: 'rgba(13, 101, 45, 1)',
+                            backgroundColor: 'rgba(13, 101, 45, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Emergencial',
+                            data: atendimentosPorMesEmergencial,
+                            borderColor: 'rgba(197, 34, 31, 1)',
+                            backgroundColor: 'rgba(197, 34, 31, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Encaixe',
+                            data: atendimentosPorMesEncaixe,
+                            borderColor: 'rgba(234, 134, 0, 1)',
+                            backgroundColor: 'rgba(234, 134, 0, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade de Atendimentos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+            
+            // 4. Gráfico de sessões por paciente
+            const sessoesPorPacienteCtx = document.getElementById('sessoesPorPacienteChart').getContext('2d');
+            
+            // Agrupar pacientes por quantidade de sessões
+            const distribuicaoSessoes = [0, 0, 0, 0, 0]; // 1-2, 3-5, 6-10, 11-15, 16+
+            
+            dadosPacientes.forEach(paciente => {
+                const sessoes = paciente.sessoesRealizadas;
+                if (sessoes <= 2) distribuicaoSessoes[0]++;
+                else if (sessoes <= 5) distribuicaoSessoes[1]++;
+                else if (sessoes <= 10) distribuicaoSessoes[2]++;
+                else if (sessoes <= 15) distribuicaoSessoes[3]++;
+                else distribuicaoSessoes[4]++;
+            });
+            
+            new Chart(sessoesPorPacienteCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1-2 sessões', '3-5 sessões', '6-10 sessões', '11-15 sessões', '16+ sessões'],
+                    datasets: [{
+                        label: 'Quantidade de Pacientes',
+                        data: distribuicaoSessoes,
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Pacientes'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // 5. Gráfico de top setores
+            const topSetoresCtx = document.getElementById('topSetoresChart').getContext('2d');
+            
+            // Ordenar setores por atendimentos e pegar os 5 primeiros
+            const topSetores = [...dadosSetores]
+                .sort((a, b) => b.atendimentos - a.atendimentos)
+                .slice(0, 5);
+            
+            new Chart(topSetoresCtx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: topSetores.map(s => s.setor.substring(0, 20) + (s.setor.length > 20 ? '...' : '')),
+                    datasets: [{
+                        label: 'Atendimentos',
+                        data: topSetores.map(s => s.atendimentos),
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade de Atendimentos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // 6. Gráfico de centro de custo
+            const centroCustoCtx = document.getElementById('centroCustoChart').getContext('2d');
+            
+            // Agrupar por categorias principais de centro de custo
+            const categorias = {
+                'Produção': 0,
+                'Manutenção': 0,
+                'Administrativo': 0,
+                'Qualidade': 0,
+                'Logística': 0,
+                'Outros': 0
+            };
+            
+            dadosSetores.forEach(setor => {
+                const setorNome = setor.setor.toLowerCase();
+                if (setorNome.includes('produc') || setorNome.includes('lamin') || setorNome.includes('forno')) {
+                    categorias.Produção += setor.atendimentos;
+                } else if (setorNome.includes('manuten')) {
+                    categorias.Manutenção += setor.atendimentos;
+                } else if (setorNome.includes('admin') || setorNome.includes('ti') || setorNome.includes('rh')) {
+                    categorias.Administrativo += setor.atendimentos;
+                } else if (setorNome.includes('qualid')) {
+                    categorias.Qualidade += setor.atendimentos;
+                } else if (setorNome.includes('logist') || setorNome.includes('exped')) {
+                    categorias.Logística += setor.atendimentos;
+                } else {
+                    categorias.Outros += setor.atendimentos;
+                }
+            });
+            
+            new Chart(centroCustoCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categorias),
+                    datasets: [{
+                        data: Object.values(categorias),
+                        backgroundColor: [
+                            'rgba(26, 115, 232, 0.7)',
+                            'rgba(13, 101, 45, 0.7)',
+                            'rgba(234, 134, 0, 0.7)',
+                            'rgba(197, 34, 31, 0.7)',
+                            'rgba(102, 51, 153, 0.7)',
+                            'rgba(128, 128, 128, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(26, 115, 232, 1)',
+                            'rgba(13, 101, 45, 1)',
+                            'rgba(234, 134, 0, 1)',
+                            'rgba(197, 34, 31, 1)',
+                            'rgba(102, 51, 153, 1)',
+                            'rgba(128, 128, 128, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 7. Gráfico de queixas por segmento corporal
+            const queixasSegmentoCtx = document.getElementById('queixasSegmentoChart').getContext('2d');
+            
+            // Agrupar queixas por segmento corporal
+            const segmentosMap = new Map();
+            dadosAtendimentos.forEach(atendimento => {
+                if (!segmentosMap.has(atendimento.segmentoCorporal)) {
+                    segmentosMap.set(atendimento.segmentoCorporal, 0);
+                }
+                segmentosMap.set(atendimento.segmentoCorporal, segmentosMap.get(atendimento.segmentoCorporal) + 1);
+            });
+            
+            const segmentosLabels = Array.from(segmentosMap.keys());
+            const segmentosData = Array.from(segmentosMap.values());
+            
+            new Chart(queixasSegmentoCtx, {
+                type: 'bar',
+                data: {
+                    labels: segmentosLabels,
+                    datasets: [{
+                        label: 'Quantidade de Queixas',
+                        data: segmentosData,
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Queixas'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // 8. Gráfico de risco do posto de trabalho
+            const riscoPostoTrabalhoCtx = document.getElementById('riscoPostoTrabalhoChart').getContext('2d');
+            
+            // Contar riscos
+            const riscos = { 'Baixo': 0, 'Médio': 0, 'Alto': 0 };
+            dadosQueixas.forEach(queixa => {
+                riscos[queixa.risco]++;
+            });
+            
+            new Chart(riscoPostoTrabalhoCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(riscos),
+                    datasets: [{
+                        data: Object.values(riscos),
+                        backgroundColor: [
+                            'rgba(13, 101, 45, 0.7)',
+                            'rgba(234, 134, 0, 0.7)',
+                            'rgba(197, 34, 31, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(13, 101, 45, 1)',
+                            'rgba(234, 134, 0, 1)',
+                            'rgba(197, 34, 31, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 9. Gráfico de relação com posto de trabalho
+            const relacaoPostoTrabalhoCtx = document.getElementById('relacaoPostoTrabalhoChart').getContext('2d');
+            
+            // Dados simulados para relação com posto
+            const relacoes = {
+                'Direta': 65,
+                'Indireta': 25,
+                'Não relacionada': 10
+            };
+            
+            new Chart(relacaoPostoTrabalhoCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(relacoes),
+                    datasets: [{
+                        data: Object.values(relacoes),
+                        backgroundColor: [
+                            'rgba(26, 115, 232, 0.7)',
+                            'rgba(234, 134, 0, 0.7)',
+                            'rgba(128, 128, 128, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(26, 115, 232, 1)',
+                            'rgba(234, 134, 0, 1)',
+                            'rgba(128, 128, 128, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 10. Gráfico de distribuição EVA
+            const evaCtx = document.getElementById('evaChart').getContext('2d');
+            
+            // Agrupar por faixa de EVA
+            const faixasEva = [0, 0, 0, 0, 0]; // 1-2, 3-4, 5-6, 7-8, 9-10
+            dadosAtendimentos.forEach(atendimento => {
+                const eva = atendimento.eva;
+                if (eva <= 2) faixasEva[0]++;
+                else if (eva <= 4) faixasEva[1]++;
+                else if (eva <= 6) faixasEva[2]++;
+                else if (eva <= 8) faixasEva[3]++;
+                else faixasEva[4]++;
+            });
+            
+            new Chart(evaCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['EVA 1-2', 'EVA 3-4', 'EVA 5-6', 'EVA 7-8', 'EVA 9-10'],
+                    datasets: [{
+                        label: 'Quantidade de Pacientes',
+                        data: faixasEva,
+                        backgroundColor: 'rgba(197, 34, 31, 0.7)',
+                        borderColor: 'rgba(197, 34, 31, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Pacientes'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // 11. Gráfico de atendimentos por fisioterapeuta
+            const atendimentosPorFisioCtx = document.getElementById('atendimentosPorFisioChart').getContext('2d');
+            
+            new Chart(atendimentosPorFisioCtx, {
+                type: 'bar',
+                data: {
+                    labels: dadosFisioterapeutas.map(f => f.nome.split(' ')[0]),
+                    datasets: [{
+                        label: 'Atendimentos',
+                        data: dadosFisioterapeutas.map(f => f.atendimentos),
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Pacientes',
+                        data: dadosFisioterapeutas.map(f => f.pacientes),
+                        backgroundColor: 'rgba(13, 101, 45, 0.7)',
+                        borderColor: 'rgba(13, 101, 45, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+            
+            // Preencher tabelas
+            preencherTabelaAtendimentos();
+            preencherTabelaPacientes();
+            preencherTabelaSetores();
+            preencherTabelaQueixas();
+            preencherTabelaFisioterapeutas();
+        }
+        
+        // Funções para preencher tabelas
+        function preencherTabelaAtendimentos() {
+            const tbody = document.querySelector('#atendimentosTable tbody');
+            tbody.innerHTML = '';
+            
+            // Pegar apenas os primeiros 20 atendimentos para exibição
+            const atendimentosExibicao = dadosAtendimentos.slice(0, 20);
+            
+            atendimentosExibicao.forEach(atendimento => {
+                const statusClass = atendimento.status === 'Realizado' ? 'status-active' : 
+                                  atendimento.status === 'Falta' ? 'status-inactive' : 'status-pending';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${atendimento.id}</td>
+                    <td>${atendimento.pacienteNome}</td>
+                    <td>${atendimento.data.toLocaleDateString('pt-BR')}</td>
+                    <td>${atendimento.tipo}</td>
+                    <td>${atendimento.setor.substring(0, 20)}${atendimento.setor.length > 20 ? '...' : ''}</td>
+                    <td>${atendimento.queixa}</td>
+                    <td>${atendimento.eva}</td>
+                    <td><span class="status-badge ${statusClass}">${atendimento.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function preencherTabelaPacientes() {
+            const tbody = document.querySelector('#pacientesTable tbody');
+            tbody.innerHTML = '';
+            
+            // Ordenar pacientes por número de sessões (decrescente)
+            const pacientesOrdenados = [...dadosPacientes].sort((a, b) => b.sessoesRealizadas - a.sessoesRealizadas);
+            
+            // Pegar apenas os primeiros 20 pacientes para exibição
+            const pacientesExibicao = pacientesOrdenados.slice(0, 20);
+            
+            pacientesExibicao.forEach(paciente => {
+                const statusClass = paciente.status === 'Alta' ? 'status-active' : 
+                                  paciente.status === 'Em tratamento' ? 'status-pending' : 'status-inactive';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${paciente.matricula}</td>
+                    <td>${paciente.nome}</td>
+                    <td>${paciente.setor.substring(0, 15)}${paciente.setor.length > 15 ? '...' : ''}</td>
+                    <td>${paciente.cargo.substring(0, 20)}${paciente.cargo.length > 20 ? '...' : ''}</td>
+                    <td>${paciente.sessoesRealizadas}</td>
+                    <td>${paciente.dataInicioTratamento.toLocaleDateString('pt-BR')}</td>
+                    <td><span class="status-badge ${statusClass}">${paciente.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function preencherTabelaSetores() {
+            const tbody = document.querySelector('#setoresTable tbody');
+            tbody.innerHTML = '';
+            
+            // Ordenar setores por número de atendimentos (decrescente)
+            const setoresOrdenados = [...dadosSetores].sort((a, b) => b.atendimentos - a.atendimentos);
+            
+            setoresOrdenados.forEach(setor => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${setor.setor.substring(0, 25)}${setor.setor.length > 25 ? '...' : ''}</td>
+                    <td>${setor.centroCusto.substring(0, 20)}${setor.centroCusto.length > 20 ? '...' : ''}</td>
+                    <td>${setor.pacientes}</td>
+                    <td>${setor.atendimentos}</td>
+                    <td>${setor.queixasPrincipais.substring(0, 30)}${setor.queixasPrincipais.length > 30 ? '...' : ''}</td>
+                    <td>${setor.taxaAbsenteismo}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function preencherTabelaQueixas() {
+            const tbody = document.querySelector('#queixasTable tbody');
+            tbody.innerHTML = '';
+            
+            // Ordenar queixas por número de pacientes (decrescente)
+            const queixasOrdenadas = [...dadosQueixas].sort((a, b) => b.pacientes - a.pacientes);
+            
+            queixasOrdenadas.forEach(queixa => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${queixa.cargo.substring(0, 25)}${queixa.cargo.length > 25 ? '...' : ''}</td>
+                    <td>${queixa.queixaPrincipal}</td>
+                    <td>${queixa.segmentoCorporal}</td>
+                    <td>${queixa.risco}</td>
+                    <td>${queixa.evaMedio}</td>
+                    <td>${queixa.pacientes}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function preencherTabelaFisioterapeutas() {
+            const tbody = document.querySelector('#fisioterapeutasTable tbody');
+            tbody.innerHTML = '';
+            
+            dadosFisioterapeutas.forEach(fisio => {
+                const statusClass = fisio.status === 'Ativo' ? 'status-active' : 'status-inactive';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${fisio.nome}</td>
+                    <td>${fisio.registro}</td>
+                    <td>${fisio.especialidade}</td>
+                    <td>${fisio.atendimentos}</td>
+                    <td>${fisio.pacientes}</td>
+                    <td><span class="status-badge ${statusClass}">${fisio.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Função para carregar dados de demonstração
+        function carregarDadosDemonstracao() {
+            loadingText.textContent = 'Carregando dados de demonstração...';
+            loadingElement.style.display = 'flex';
+            
+            // Simular processamento de dados
+            setTimeout(() => {
+                // Gerar dados simulados para demonstração
+                gerarDadosSimuladosPlanilha();
+                
+                // Extrair dados para dashboard
+                extrairDadosDashboard();
+                
+                // Gerar visualizações
+                gerarVisualizacoes();
+                
+                loadingElement.style.display = 'none';
+                alert('Dados de demonstração carregados com sucesso!');
+            }, 1500);
+        }
+        
+        // Inicializar com dados de demonstração
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mostrar opção de arquivo local por padrão
+            localFileSection.style.display = 'block';
+            
+            // Carregar dados de demonstração automaticamente
+            carregarDadosDemonstracao();
+        });
+    </script>
+</body>
+</html>
